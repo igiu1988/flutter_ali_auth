@@ -31,6 +31,8 @@
 
 @implementation PNSBuildModelUtils
 
+//+ (PNSBuildModelUtils *)sharedInstance
+
 + (TXCustomModel *)buildModelWithStyle:(NSDictionary *)dict
                                 target:(id)target
                               selector:(SEL)selector {
@@ -1757,6 +1759,26 @@
         };
       }
     }
+  } else {
+      //
+      UIImage * navBackImagePath = [self changeUriPathToImage:[dict stringValueForKey: @"navReturnImgPath" defaultValue: nil]];
+      model.navBackImage = navBackImagePath;
+      
+      model.navBackButtonFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
+        UIImageView *imageView = [[UIImageView alloc]init];
+        imageView.image = navBackImagePath;
+        imageView.frame = CGRectMake(
+           CGRectGetMinX(frame),
+           CGRectGetMaxY(frame),
+           CGRectGetWidth(frame),
+           CGRectGetHeight(frame)
+         );
+        frame.origin.y = [dict floatValueForKey: @"navReturnOffsetY" defaultValue: 5];
+        frame.origin.x = [dict floatValueForKey: @"navReturnOffsetX" defaultValue: 15];
+        frame.size.width = [dict floatValueForKey: @"navReturnImgWidth" defaultValue: 40];
+        frame.size.height = [dict floatValueForKey: @"navReturnImgHeight" defaultValue: 40];
+        return frame;
+      };
   }
   #pragma mark 3、Logo
   if(!model.logoIsHidden && model.logoImage){
@@ -1962,8 +1984,10 @@
     if ([dict floatValueForKey: @"privacyOffsetY" defaultValue: -1] > -1) {
       frame.origin.x = [dict floatValueForKey: @"privacyOffsetX" defaultValue: -1];
     }
+      frame.size.width -= 50;
     return frame;
   };
+    model.privacyAlignment = NSTextAlignmentCenter;
   #pragma mark 10、弹窗样式
   if (PNSBuildModelStyleAlertPortrait == style || PNSBuildModelStyleAlertLandscape == style || PNSBuildModelStyleSheetPortrait == style) {
     model.alertCloseImage = model.alertCloseImage?:[UIImage imageNamed:@"icon_close_light"];
@@ -2011,52 +2035,106 @@
       };
     }
   }
-  
+    
+    #pragma mark 屏幕方向
+    model.supportedInterfaceOrientations = UIInterfaceOrientationMaskPortrait;
+    model.privacyLineSpaceDp = 5;
+    // 设置后点击富文本不会直接跳转页面
+  //   model.privacyVCIsCustomized = YES;
+    
+    
   #pragma mark 10、二次弹窗
-  model.privacyAlertTitleFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-    // return CGRectMake(0, 20, frame.size.width, frame.size.height);
-    return CGRectMake(
-        0,
-        [dict floatValueForKey: @"privacyAlertTitleOffsetY" defaultValue: 20],
-        frame.size.width,
-        frame.size.height
-    );
-  };
-  /// 弹窗大小
-  model.privacyAlertFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-    return CGRectMake(
-        [dict floatValueForKey: @"privacyAlertOffsetX" defaultValue: 40],
-        [dict floatValueForKey: @"privacyAlertOffsetY" defaultValue: frame.origin.y],
-        [dict floatValueForKey: @"privacyAlertWidth" defaultValue: frame.size.width - 80],
-        [dict floatValueForKey: @"privacyAlertHeight" defaultValue: 200]
-    );
-  };
-  /// 确认按钮
-  model.privacyAlertButtonFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-    // return CGRectMake(frame.origin.x,superViewSize.height - 50 - 20, frame.size.width, 50);
-    return CGRectMake(
-        frame.origin.x,
-        frame.origin.y,
-        [dict floatValueForKey: @"privacyAlertBtnWidth" defaultValue: frame.size.width],
-        [dict floatValueForKey: @"privacyAlertBtnHeigth" defaultValue: 50]
-    );
-  };
-  
-  
-  #pragma mark 屏幕方向
-  if (model.privacyAlertIsNeedShow) {
+    model.privacyAlertIsNeedShow = YES;
+    model.privacyAlertMaskAlpha = 0.5;
+    model.privacyAlertMaskColor = UIColor.blackColor;
+    model.privacyAlertCornerRadiusArray = @[@10,@10,@10,@10];
+    model.privacyAlertBackgroundColor = UIColor.whiteColor;
+    model.privacyAlertAlpha = 1.0;
+    model.privacyAlertTitleBackgroundColor = UIColor.whiteColor;
+    model.privacyAlertContentBackgroundColor = UIColor.whiteColor;
+    model.privacyAlertTitleFont = [UIFont boldSystemFontOfSize:16];
+    model.privacyAlertTitleColor = [UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1];
+    model.privacyAlertContentFont = [UIFont systemFontOfSize:14];
+    model.privacyAlertContentColors = @[[UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1], [UIColor colorWithRed:12/255.0 green:83/255.0 blue:255/255.0 alpha:1]];
+    model.privacyAlertContentAlignment = NSTextAlignmentCenter;
+    UIImage *activeImage = [TXCommonUtils imageWithColor:UIColor.clearColor size:CGSizeMake(3, 3) isRoundedCorner:NO radius:0];
+    UIImage *hightLightImage = [TXCommonUtils imageWithColor:UIColor.clearColor size:CGSizeMake(3, 3) isRoundedCorner:NO radius:0];
+    model.privacyAlertBtnBackgroundImages = @[activeImage, hightLightImage];
+    model.privacyAlertButtonTextColors = @[[UIColor colorWithRed:12/255.0 green:83/255.0 blue:255/255.0 alpha:1],[UIColor colorWithRed:12/255.0 green:83/255.0 blue:255/255.0 alpha:1]];
+    model.privacyAlertButtonFont = [UIFont systemFontOfSize:16];
+    model.privacyAlertCloseButtonIsNeedShow = NO;
+    model.privacyAlertMaskIsNeedShow = YES;
+    model.privacyAlertIsNeedAutoLogin = YES;
+    model.tapPrivacyAlertMaskCloseAlert = YES;
+    model.privacyAlertLineSpaceDp = 5;
+    model.privacyAlertContentAlignment = NSTextAlignmentCenter;
+    model.privacyAlertPreText = @"阅读并同意";
+    model.privacyAlertSufText = @"，我们将严格保护你的隐私。";
+        
+    CGSize alertSize = CGSizeMake(300, 175);
+    CGFloat buttonHeight = 48;
+    CGFloat buttonWidth = alertSize.width * 0.5;
     model.privacyAlertTitleFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
         return CGRectMake(0, 20, frame.size.width, frame.size.height);
     };
     model.privacyAlertPrivacyContentFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-        return CGRectMake(0, frame.origin.y+10, frame.size.width, frame.size.height);
+        return CGRectMake(20, frame.origin.y + 10, frame.size.width - 40, frame.size.height);
     };
-  }
-  
-  // 设置后点击富文本不会直接跳转页面
-  // model.privacyVCIsCustomized = YES;
-  model.supportedInterfaceOrientations = UIInterfaceOrientationMaskPortrait;
+    model.privacyAlertButtonFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
+        return CGRectMake(buttonWidth, superViewSize.height - buttonHeight, buttonWidth, buttonHeight);
+    };
+    model.privacyAlertFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
+        return CGRectMake(ceilf((screenSize.width - alertSize.width) / 2), (superViewSize.height - alertSize.height)*0.5, alertSize.width, alertSize.height);
+    };
+    
+    UIButton *cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [cancelButton setTitle:@"不同意" forState:UIControlStateNormal];
+    cancelButton.titleLabel.font = [UIFont systemFontOfSize:16];
+    [cancelButton setTitleColor:[UIColor colorWithRed:51/255.0 green:51/255.0 blue:51/255.0 alpha:1] forState:UIControlStateNormal];
+    [cancelButton addTarget:self action:@selector(buttonAction:) forControlEvents:UIControlEventTouchUpInside];
+    cancelButton.backgroundColor = [UIColor clearColor];
+    
+    UIView *hLine = [[UIView alloc] init];
+    hLine.backgroundColor = [UIColor colorWithRed:235/255.0 green:237/255.0 blue:240/255.0 alpha:1];
+    
+    UIView *vLine = [[UIView alloc] init];
+    vLine.backgroundColor = [UIColor colorWithRed:235/255.0 green:237/255.0 blue:240/255.0 alpha:1];
+    
+    model.privacyAlertCustomViewBlock = ^(UIView * _Nonnull superPrivacyAlertCustomView) {
+        [superPrivacyAlertCustomView addSubview:cancelButton];
+        [superPrivacyAlertCustomView addSubview:hLine];
+        [superPrivacyAlertCustomView addSubview:vLine];
+        superPrivacyAlertCustomView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
+    };
+    
+    model.privacyAlertCustomViewLayoutBlock = ^(CGRect privacyAlertFrame, CGRect privacyAlertTitleFrame, CGRect privacyAlertPrivacyContentFrame, CGRect privacyAlertButtonFrame, CGRect privacyAlertCloseFrame) {
+        hLine.frame = CGRectMake(0, alertSize.height - buttonHeight, alertSize.width, 1/[UIScreen mainScreen].scale);
+        vLine.frame = CGRectMake(buttonWidth, alertSize.height - buttonHeight, 1/[UIScreen mainScreen].scale, buttonHeight);
+        cancelButton.frame = CGRectMake(0, alertSize.height - buttonHeight, buttonWidth, buttonHeight);
+    };
+    
+    
+    CABasicAnimation *fadeInAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    fadeInAnimation.fromValue = @(0.0);
+    fadeInAnimation.toValue = @(1.0);
+    fadeInAnimation.duration = .3;
+    
+    CABasicAnimation *fadeOutAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    fadeOutAnimation.fromValue = @(1.0);
+    fadeOutAnimation.toValue = @(0.0);
+    fadeOutAnimation.duration = .3;
+
+    model.privacyAlertEntryAnimation = fadeInAnimation;
+    model.privacyAlertExitAnimation = fadeOutAnimation;
+    
+    
+    
   return model;
+}
+
++ (void)buttonAction:(UIButton *)sender {
+    [[TXCommonHandler sharedInstance] closePrivactAlertView];
+    NSLog(@"buttonAction %@", sender.titleLabel.text);
 }
 
 /**

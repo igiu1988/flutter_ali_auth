@@ -93,7 +93,7 @@ bool bool_false = false;
   }
   else if ([@"getCurrentCarrierName" isEqualToString:call.method]) {
     // 获取当前上网卡运营商名称，比如中国移动、中国电信、中国联通
-    result([[TXCommonUtils init] getCurrentCarrierName]);
+    result([TXCommonUtils getCurrentCarrierName]);
   }
   // 初始化SDK
   else if ([@"initSdk" isEqualToString:call.method]) {
@@ -337,9 +337,10 @@ bool bool_false = false;
 //              [[weakSelf findCurrentViewController].view addSubview:headerView];
               
               bool isHiddenLoading = [self->_callData.arguments boolValueForKey: @"isHiddenLoading" defaultValue: YES];
+                BOOL isShowToast = NO;
               // 当未勾选隐私协议时，弹出 Toast 提示
               if ([PNSCodeLoginControllerClickLoginBtn isEqualToString:code] &&
-                    !self->_isChecked) {
+                    !self->_isChecked && isShowToast) {
                     NSDictionary *dic = self->_callData.arguments;
                     [self showToast:[dic stringValueForKey:@"toastText" defaultValue:@"请先阅读用户协议"]];
                     // 当存在isHiddenLoading时需要执行loading
@@ -356,14 +357,17 @@ bool bool_false = false;
                   });
                 }
               } else if ([PNSCodeLoginControllerClickChangeBtn isEqualToString:code]) {
-                // 通过switchCheck 参数动态控制 是否需要切换其他方式时需要勾选
-                NSDictionary *dic = self -> _callData.arguments;
-                if (!self->_isChecked && !self-> _isHideToast && [dic boolValueForKey: @"switchCheck" defaultValue: YES]) {
-                  [self showToast: [dic stringValueForKey: @"toastText" defaultValue: @"请先阅读用户协议"]];
-                  return;
-                } else {
+//                // 通过switchCheck 参数动态控制 是否需要切换其他方式时需要勾选
+//                NSDictionary *dic = self -> _callData.arguments;
+//                if (!self->_isChecked && !self-> _isHideToast && [dic boolValueForKey: @"switchCheck" defaultValue: YES]) {
+//                  [self showToast: [dic stringValueForKey: @"toastText" defaultValue: @"请先阅读用户协议"]];
+//                  return;
+//                } else {
+//                  [[TXCommonHandler sharedInstance] cancelLoginVCAnimated:YES complete:nil];
+//                }
+                  // 上面是源代码，看源码，switchCheck应该通过dart中的login方法传递过来才对。
+                  // 不过我的需求不需要这样的场景，所以在这儿就直接 cancelLoginVC
                   [[TXCommonHandler sharedInstance] cancelLoginVCAnimated:YES complete:nil];
-                }
               } else if ([PNSCodeLoginControllerClickCheckBoxBtn isEqualToString:code]) { // 点击同意协议
                 self->_isChecked = [[resultDic objectForKey:@"isChecked"] boolValue];
               } else if ([PNSCodeLoginControllerClickCancel isEqualToString:code]) { // 取消

@@ -48,14 +48,15 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
+    getCarrierName();
     _ambiguate(WidgetsBinding.instance)?.addObserver(this);
 
     /// 初始化第三方按钮数据
     setState(() {
       androidSk =
-          "kReOFbE7mWUhefnT2BAGdKCGqgtnZbcPa/vGFc6z//ytIrOxZRndH0pdIeHM465OfdpHPMFxgPATR1EnKE7aonZ5hyEP1CE4Wz0QhWEWNTg7mmeq8hstbgFtjP8boZx/mPalQZmfD5heQ9E5Rahg4tWQfsCBENlQLgR/6vqtA8F3knXFa6awGegHj3C8bSXyCVj2OKxZFAvrZ1+1bd7TD2We3HyXsSJoDBLGuSqZIZ3VkExNC8jX4fL9uP5Ul9VVNSjahTn70u+9RYdB0BrtJpw+FPytOIsapzqdfrtqkFTk3v0+BcVJnA==";
+          "5uv+vhzaLSN5NhqLOJdwZaBWHavtTGb9ssdtuW23kd1/ULz7XZiH37fEHrt7SD40kIn30yaG7VaSy7Q+VasEPinQLywQluhFIkvZHfbk6N3ragXxmUyrOMM9gRmhgpdjJ+N/F/tTjLRcgoqhDdbpgP7BTUOYC4R4WEN2Pfz7Q87vYmgCQMPQLWkgXy5/A3/aQUS2djXn0E1Yjjhc9jo9SZTrI6FsTHKZvDNZw8XCjAXWeDdMLx5HpChFeiDowg8t66r03G4cj7y9EJzN14z+YdBAU+/zG1CMdZUggcuov0DnWXeLEAAt6Q==";
       iosSk =
-          "mjWr9sTsoXwmMx7qf0T2KQOQBpqkxeNW9I1ZNZ96ZCeBbeD9xYOUaC2mE9mcqog041VCot2sLcy9UArf+re517e5R9yowKCjf15VglZSP/HweRhOT8Cvci43zagyRqo40l85LTnZ5uJPaVauDLJB7hOTIkNPGm3fb621k6A6ZDh6aDGAKWyy0tPUPV/9RFrfeig9SURNe9Vl/Aok6SKg+SftM30uk2W8wdbV8gMVbU51Odnoapm2ZlAJYmCrdoXvROW5qc8pbQ8=";
+          "8aJFrsF/cXfBTAVlr82IO08dfl1ynIWC2+W7F1YFQdssF5o2JKF8ep8soBn6eUrHW//lMWNWG/4m/irRVuw4r4OEQCXbxca87fPv8qAQ0GXQG5y/2EC90qIK3AbWcupWzsDAK3w0+oa8L/nxGRXuE8q4phkh3+aVWV9zbFJB3+TvbRcPEhCVkBWOKgoEs7Ls0ilPVgG1EtEPTnsHQZA+69jlf/6Qvs563rJooslWMzTZCul4h6WwmMd4vcXDWa8LmJxoceZOkBo=";
 
       screenWidth =
           (PlatformDispatcher.instance.views.first.physicalSize.width /
@@ -137,6 +138,69 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  String _carrierName = "aaaa";
+  void getCarrierName() async {
+    _carrierName = await AliAuth.getCurrentCarrierName();
+  }
+
+  AliAuthModel aliConfigure() {
+    return AliAuthModel(
+        androidSk,
+        iosSk,
+        autoQuitPage: true,
+        isDelay: true,
+        pageType: PageType.fullPort,
+        statusBarColor: '#ffffff',
+        navHidden: false,
+        navReturnImgPath: "assets/return_btn.png",
+        navReturnImgHeight: 44,
+        navReturnImgWidth: 44,
+        navText: '',
+        navColor: '#ffffff',
+        logoHeight: 80,
+        logoWidth: 80,
+        logoOffsetY: 80,
+        logoImgPath: 'assets/logo.png',
+        dialogBottom:false,
+        sloganTextColor: '#FF999999',
+        sloganTextSize: 12,
+        sloganText: '认证服务由$_carrierName提供',
+        sloganOffsetY: 237,
+        numberColor: '#FF333333',
+        numFieldOffsetY: 190,
+        numberSize: 30,
+        logBtnText: '本机号码一键登录',
+        logBtnOffsetY: 303,
+        logBtnTextSize: 16,
+        logBtnTextColor: '#FFFFFFFF',
+        logBtnBackgroundPath:
+        "assets/login_btn_normal.png,assets/login_btn_unable.png,assets/login_btn_press.png",
+        logBtnHeight: 45,
+        switchAccTextColor: '#FF000000',
+        switchAccTextSize: 14,
+        switchAccText: '其他号码登录',
+        switchOffsetY: 368,
+        protocolOneName: '《用户协议》',
+        protocolColor: '#FF999999',
+        protocolOneURL:
+        'http://gk-api.xiaohuanxiongkeji.com/h5/user-agreement.html',
+        protocolOwnColor: '#FFFF2A17',
+        protocolOwnOneColor: '#FFFF2A17',
+        protocolTwoName: '《隐私政策》',
+        protocolTwoURL:
+        'http://gk-api.xiaohuanxiongkeji.com/h5/privacy-policy.html',
+        protocolOwnTwoColor: '#FFFF2A17',
+        privacyTextSize: 11,
+        switchCheck: false,
+        checkBoxWidth: 22,
+        checkBoxHeight: 22,
+        uncheckedImgPath: "assets/btn_unchecked.png",
+        checkedImgPath: "assets/btn_checked.png",
+        webNavColor: '#ffffff',
+        webNavReturnImgPath: "assets/return_btn.png",
+        webNavTextColor: '#FF000000');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,6 +212,13 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           children: [
             Text(status),
+            ElevatedButton(
+              onPressed: () async {
+                // await AliAuth.initSdk(aliConfigure());
+                await AliAuth.login();
+              },
+              child: const Text("戏精配音登录"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 await AliAuth.initSdk(getFullPortConfig());
@@ -198,7 +269,8 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             ),
             ElevatedButton(
               onPressed: () async {
-                await AliAuth.initSdk(getFullPortConfig(isDelay: true));
+                await AliAuth.initSdk(aliConfigure());
+                // _carrierName = await AliAuth.getCurrentCarrierName();
               },
               child: const Text("初始化全屏延迟登录"),
             ),
