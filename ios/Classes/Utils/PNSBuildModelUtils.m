@@ -2070,6 +2070,7 @@
     model.privacyAlertContentAlignment = NSTextAlignmentCenter;
     model.privacyAlertPreText = @"阅读并同意";
     model.privacyAlertSufText = @"，我们将严格保护你的隐私。";
+    
         
     CGSize alertSize = CGSizeMake(300, 175);
     CGFloat buttonHeight = 48;

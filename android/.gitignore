@@ -6,3 +6,19 @@
 .DS_Store
 /build
 /captures
+
+/app/debug
+/app/profile
+/app/release
+
+# Android related
+/gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+/GeneratedPluginRegistrant.java
+/key.properties
+
+/example/android/app/.cxx/

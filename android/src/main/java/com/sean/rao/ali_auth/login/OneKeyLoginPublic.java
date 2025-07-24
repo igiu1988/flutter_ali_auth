@@ -1,19 +1,33 @@
 package com.sean.rao.ali_auth.login;
 
+import static com.sean.rao.ali_auth.utils.AppUtils.dp2px;
+
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.content.Context;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.IntRange;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.mobile.auth.gatewayauth.AuthUIConfig;
+import com.mobile.auth.gatewayauth.CustomInterface;
 import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
 import com.mobile.auth.gatewayauth.PreLoginResultListener;
 import com.mobile.auth.gatewayauth.ResultCode;
 import com.mobile.auth.gatewayauth.TokenResultListener;
+import com.mobile.auth.gatewayauth.AuthRegisterViewConfig;
 import com.mobile.auth.gatewayauth.model.TokenRet;
+import com.sean.rao.ali_auth.R;
 import com.sean.rao.ali_auth.common.LoginParams;
 import com.sean.rao.ali_auth.config.BaseUIConfig;
 import com.sean.rao.ali_auth.utils.UtilTool;
@@ -24,11 +38,18 @@ import java.util.Map;
 
 import io.flutter.plugin.common.EventChannel;
 
+
+
 /**
  * 进app直接登录的场景
  */
 public class OneKeyLoginPublic extends LoginParams {
     private static final String TAG = OneKeyLoginPublic.class.getSimpleName();
+    private static final int alertWidth = 300;
+    private static final int alertHeight = 195;
+    private static final int buttonWidth = alertWidth / 2;
+    private static final int buttonHeight = 48;
+    private static final int buttonOffsetY = 15;
 
     public OneKeyLoginPublic(Activity activity, EventChannel.EventSink _eventSink, Object arguments){
         mActivity = activity;
@@ -39,6 +60,7 @@ public class OneKeyLoginPublic extends LoginParams {
 
         // 初始化SDK
         sdkInit();
+        customPrivacyAlert();
         mUIConfig = BaseUIConfig.init(jsonObject.getIntValue("pageType"));
         if (jsonObject.getBooleanValue("isDelay")) {
         } else {
@@ -267,6 +289,83 @@ public class OneKeyLoginPublic extends LoginParams {
         return formatData;
     }
 
+    protected View initCancelView() {
+        // 创建最外层垂直方向的LinearLayout
+        LinearLayout containerLayout = new LinearLayout(mContext);
+        containerLayout.setOrientation(LinearLayout.VERTICAL);
+        int marginPx = dp2px(mActivity, buttonOffsetY);
+        containerLayout.setPadding(0, marginPx, 0, 0);
+
+        containerLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        // 创建顶部分割线
+        View topDivider = new View(mContext);
+        LinearLayout.LayoutParams topDividerParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1); // 1px高度
+        topDivider.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        topDivider.setLayoutParams(topDividerParams);
+        containerLayout.addView(topDivider);
+
+        // 创建水平方向的LinearLayout，用于放置按钮和竖线
+        LinearLayout buttonContainer = new LinearLayout(mContext);
+        buttonContainer.setOrientation(LinearLayout.HORIZONTAL);
+        buttonContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        // 创建取消按钮
+        TextView cancelButton = new TextView(mContext);
+        // 使用 LayoutParams 来确定大小
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                dp2px(mActivity, buttonWidth),  // 宽度设置为父容器的一半
+                dp2px(mActivity, buttonHeight)
+        );
+        // 使用 margins来确定位置
+        buttonParams.setMargins(0, dp2px(mActivity, -1), 0, 0);
+        cancelButton.setLayoutParams(buttonParams);
+        cancelButton.setText("不同意");
+        cancelButton.setTextColor(Color.parseColor("#FF333333"));
+        cancelButton.setGravity(Gravity.CENTER);
+        cancelButton.setBackgroundColor(Color.TRANSPARENT);
+        cancelButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16.0F);
+
+        // 创建竖线分割线
+        View verticalDivider = new View(mContext);
+        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                1, // 1px宽度
+                dp2px(mActivity, buttonHeight)
+        );
+        dividerParams.setMargins(0, 0, 0, 0);
+        verticalDivider.setLayoutParams(dividerParams);
+        verticalDivider.setBackgroundColor(Color.parseColor("#DDDDDD"));
+
+        // 添加取消按钮和竖线到水平容器中
+        buttonContainer.addView(cancelButton);
+        buttonContainer.addView(verticalDivider);
+
+        // 将水平容器添加到最外层容器中
+        containerLayout.addView(buttonContainer);
+
+        return containerLayout;
+    }
+
+    private void customPrivacyAlert() {
+        mAuthHelper.removePrivacyAuthRegisterViewConfig();
+        mAuthHelper.addPrivacyAuthRegistViewConfig("cancel_dialog", new AuthRegisterViewConfig.Builder()
+                .setView(initCancelView())
+                .setRootViewId(AuthRegisterViewConfig.RootViewId.ROOT_VIEW_ID_NUMBER)
+                .setCustomInterface(new CustomInterface() {
+                    @Override
+                    public void onClick(Context context) {
+                        mAuthHelper.quitPrivacyPage();
+                    }
+                }).build());
+    }
 
     /**
      * 对配置参数进行格式化并且转换
@@ -274,7 +373,56 @@ public class OneKeyLoginPublic extends LoginParams {
      * @return
      */
     private AuthUIConfig.Builder getFormatConfig(JSONObject jsonObject){
-        AuthUIConfig.Builder config = JSON.parseObject(JSONObject.toJSONString(jsonObject), AuthUIConfig.Builder.class);
+        AuthUIConfig.Builder config = JSON.parseObject(JSONObject.toJSONString(jsonObject), AuthUIConfig.Builder.class)
+                .setPrivacyAlertBtnOffsetX(buttonWidth)
+                .setPrivacyAlertBtnOffsetY(buttonOffsetY)
+                .setBottomNavColor(Color.TRANSPARENT) // 底部导航栏颜色，可以让授权页和二次弹窗都全屏
+                .setStatusBarColor(Color.WHITE)
+                .setLightColor(true)
+                .setStatusBarUIFlag(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+                .setTapPrivacyAlertMaskCloseAlert(false)
+                .setPrivacyAlertMaskIsNeedShow(true)
+                .setVendorPrivacyPrefix("《")
+                .setVendorPrivacySuffix("》")
+                .setPrivacyAlertEntryAnimation("in_activity")   // 弹窗进入动画，不设置在某些机型动画不是预期的渐显
+                .setPrivacyAlertExitAnimation("out_activity")   // 弹窗进入动画，不设置在某些机型动画不是预期的渐隐
+
+
+                .setWebNavColor(Color.WHITE)
+                .setWebViewStatusBarColor(Color.WHITE)
+                .setWebNavTextColor(Color.BLACK)
+                .setWebNavTextSizeDp(18)
+                ;
+
+        config.setLogBtnToastHidden(true);
+        config.setPrivacyAlertWidth(alertWidth);
+        config.setPrivacyAlertHeight(alertHeight);
+        config.setPrivacyAlertCornerRadiusArray(new int[]{12,12,12,12});
+
+        config.setPrivacyAlertTitleTextSize(16);
+        config.setPrivacyAlertTitleOffsetY(20);
+        config.setPrivacyAlertTitleColor(Color.parseColor("#FF333333"));
+
+        config.setPrivacyAlertContentTextSize(14);
+        config.setPrivacyAlertContentColor(Color.parseColor("#FF0C53FF"));
+        config.setPrivacyAlertContentBaseColor(Color.parseColor("#FF333333"));
+        config.setPrivacyAlertContentHorizontalMargin(20);
+        config.setPrivacyAlertContentAlignment(Gravity.CENTER);
+        config.setPrivacyAlertContentVerticalMargin(10);
+
+        config.setPrivacyAlertBtnWidth(buttonWidth);
+        config.setPrivacyAlertBtnHeigth(buttonHeight);
+
+        config.setPrivacyAlertBtnBackgroundImgDrawable(new ColorDrawable(Color.TRANSPARENT)); // WHITE
+        config.setPrivacyAlertBtnTextColor(Color.parseColor("#FF0C53FF"));
+        config.setPrivacyAlertBtnTextSize(16);
+        config.setPrivacyAlertBtnContent("同意并登录");
+
+        config.setPrivacyBefore("阅读并同意");
+        config.setPrivacyEnd("，我们将严格保护你的隐私。");
+        config.setPrivacyAlertCloseBtnShow(false); // 关闭按钮不展示
+        config.setTapAuthPageMaskClosePage(false); // 点击遮罩不关闭页面
+
 
         // 设置按钮的背景
         // 20230518 修正错误 setLoadingBackgroundPath -> setLogBtnBackgroundPath
@@ -330,3 +478,4 @@ public class OneKeyLoginPublic extends LoginParams {
         return config;
     }
 }
+
